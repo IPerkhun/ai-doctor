@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+python-dotenv
+
+openai
+langchain
+langgraph
+pydantic
+httpx
+
+aiogram>=3.0.0
