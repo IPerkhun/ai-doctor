@@ -5,7 +5,6 @@ from .agent import generate_final_recommendation, generate_followup_question
 from .utils import logger
 
 
-# ───── Состояние FSM ─────
 class GraphState(TypedDict, total=False):
     user_id: int
     message: str
@@ -16,21 +15,20 @@ class GraphState(TypedDict, total=False):
     final_recommendation: str
 
 
+# Глобальный memory и graph, НО с поддержкой thread_id
 memory = MemorySaver()
 
 
 def start_node(state: GraphState) -> GraphState:
-    logger.info("[START]: %s", state["message"])
+    logger.info("[START]: %s", state.get("message"))
 
-    # Если предыдущий вопрос был q1, считаем, что это ответ на него
     if "q1" in state and "a1" not in state:
         state["a1"] = state["message"]
-        del state["message"]  # очищаем сообщение после обработки
     elif "q2" in state and "a2" not in state:
         state["a2"] = state["message"]
-        del state["message"]  # очищаем сообщение после обработки
-    logger.info(f"[STATE DEBUG] Текущее состояние: {state}")
 
+    state.pop("message", None)
+    logger.info(f"[STATE DEBUG] Текущее состояние: {state}")
     return state
 
 
@@ -69,7 +67,6 @@ def generate_final(state: GraphState) -> GraphState:
     )
     logger.info(f"[FINAL RECOMMENDATION]\n{result}")
     state["final_recommendation"] = result
-    reset_user_state(state.get("user_id", ""))
     return state
 
 
@@ -96,10 +93,10 @@ def build_graph():
     return builder.compile(checkpointer=memory)
 
 
-graph = build_graph()  # <-- и только потом инициализируем
+# Один graph на всё приложение
+graph = build_graph()
 
 
 def reset_user_state(user_id: str):
-    global graph
-    graph = build_graph()  # пересоздаем граф с новым memory
-    logger.info(f"[RESET] Граф перезапущен для пользователя {user_id}")
+    memory.delete_thread(user_id)
+    logger.info(f"[RESET] Граф очищен для пользователя {user_id}")
