@@ -11,21 +11,21 @@ from aiogram.client.default import DefaultBotProperties
 
 import httpx
 
-# ───── Загрузка переменных окружения ─────
+
 load_dotenv()
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 API_BACKEND_URL = os.getenv("API_BACKEND_URL", "http://localhost:8000")
 MESSAGE_URL = f"{API_BACKEND_URL}/message"
 RESET_URL = f"{API_BACKEND_URL}/reset"
 
-# ───── Инициализация бота ─────
+
 bot = Bot(token=TELEGRAM_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 storage = MemoryStorage()
 dp = Dispatcher(storage=storage)
 router = Router()
 dp.include_router(router)
 
-# ───── Клавиатура ─────
+
 main_kb = ReplyKeyboardMarkup(
     keyboard=[
         [KeyboardButton(text="🩺 Начать разговор")],
@@ -35,7 +35,6 @@ main_kb = ReplyKeyboardMarkup(
 )
 
 
-# ───── Вспомогательная функция сброса ─────
 async def reset_user_session(user_id: int) -> str:
     try:
         async with httpx.AsyncClient() as client:
@@ -45,7 +44,6 @@ async def reset_user_session(user_id: int) -> str:
         return f"⚠️ Ошибка сброса: {e}"
 
 
-# ───── Обработчики ─────
 @router.message(CommandStart())
 async def cmd_start(message: Message):
     err = await reset_user_session(message.from_user.id)
@@ -102,7 +100,6 @@ async def handle_text(message: Message):
     await message.answer(reply_text, reply_markup=main_kb)
 
 
-# ───── Запуск ─────
 def run_bot():
     asyncio.run(dp.start_polling(bot))
 
