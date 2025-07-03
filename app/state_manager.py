@@ -8,6 +8,7 @@ from .utils import logger
 class GraphState(TypedDict, total=False):
     user_id: int
     message: str
+    initial_message: str
     q1: str
     a1: str
     q2: str
@@ -21,6 +22,9 @@ memory = MemorySaver()
 
 def start_node(state: GraphState) -> GraphState:
     logger.info("[START]: %s", state.get("message"))
+
+    if "initial_message" not in state and "message" in state:
+        state["initial_message"] = state["message"]
 
     if "q1" in state and "a1" not in state:
         state["a1"] = state["message"]
@@ -59,7 +63,7 @@ def ask_q2(state: GraphState) -> GraphState:
 
 def generate_final(state: GraphState) -> GraphState:
     result = generate_final_recommendation(
-        message=state.get("message", ""),
+        message=state.get("initial_message", ""),
         a1=state.get("a1", ""),
         q1=state.get("q1", ""),
         a2=state.get("a2", ""),
