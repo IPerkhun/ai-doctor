@@ -70,6 +70,7 @@ def generate_final(state: GraphState) -> GraphState:
         q2=state.get("q2", ""),
     )
     logger.info(f"[FINAL RECOMMENDATION]\n{result}")
+    # TODO add_link() фуекция которая добавляетс ссылку на корзину
     state["final_recommendation"] = result
     return state
 
